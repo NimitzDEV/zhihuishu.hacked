@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        智慧树刷课插件
+// @name        智慧树刷课插件(安全版)
 // @namespace   http://www.nimitzdev.org/
-// @version     1.0.0
+// @version     1.1.0
 // @author      NimitzDEV
 // @description 此插件用于进行智慧树刷课用
 // @copyright   2015, NimitzDEV
@@ -14,11 +14,9 @@
 // @run-at      document-idle
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
-/*标志是否已经定位*/
-var isSeeked = false;
-var rid ;
-var courseId ;
-$(document).ready(function () {
+var rid ; 
+var courseId ;   
+$(document).ready(function () {   
     var commitStatus = true;                            // 讨论讨论提交状态
     var loadPreStudyNoteState = true;                   // 查询学习记录
     var validateIsJumpChapterStatus = true;             // 验证跨章提交状态
@@ -50,17 +48,16 @@ $(document).ready(function () {
     var videoSize;                                      // 视频大小
     var noteId = $("#noteId").val();					// 笔记id
     var watchState;                                     // 观看状态
-
-    initLoad();
-
-    // 初始载入播放器
+    initLoad(); 
+    
+    // 初始载入播放器 
     function initLoad() {
         showExploreTip();
         // 检查当前章节视频列表中是否有包含此视频ID(防错)，#张立坤注
         if (checkedVideoIsExist(videoId)) {
             var video = $('#video-' + videoId);
             if (isSignUp()) {								// 已报名
-                // 从课程主页进入，弹出此提示，用于引导用户不再从此进入，#张立坤注
+            	// 从课程主页进入，弹出此提示，用于引导用户不再从此进入，#张立坤注
                 validateIntoPoistion();
                 // 直接当前章(节)
                 validateIsJumpChapter(video, true);
@@ -84,7 +81,7 @@ $(document).ready(function () {
 
         // 前端渲染播放状态(图标：未看、播放未完成、播放完成)
         initVideoPlayState();
-
+        
         initLearningEvent();
 
     }
@@ -178,16 +175,16 @@ $(document).ready(function () {
         if (isJumpChapter == 0) {
 
             //if (isFirstLoadVideo) {
-            var unPlayCount = getUnplayVideoCount($('#chapter-' + video.attr('_chapterId')));
+                var unPlayCount = getUnplayVideoCount($('#chapter-' + video.attr('_chapterId')));
 
-            if (unPlayCount == 0) {
-                initPlayInfo(video);
-            } else {
-                tmInitLoadingT("本课程不能跨章学习!本章之前还有【" + (unPlayCount) + "个】未观看完成的视频！", 5000);
-                if (isFirstLoadVideo) {
-                    window.setTimeout(reloadDefaultVideo, 3000);
+                if (unPlayCount == 0) {
+                    initPlayInfo(video);
+                } else {
+                    tmInitLoadingT("本课程不能跨章学习!本章之前还有【" + (unPlayCount) + "个】未观看完成的视频！", 5000);
+                    if (isFirstLoadVideo) {
+                        window.setTimeout(reloadDefaultVideo, 3000);
+                    }
                 }
-            }
 
 
             //} else {
@@ -290,7 +287,7 @@ $(document).ready(function () {
         recoveryDefault(); // 初始化默认参数
         $videoObject = $this;
 
-        if (lessonId != $videoObject.attr('_lessonId')) {
+        if (lessonId != $videoObject.attr('_lessonId')|| videoId != $videoObject.attr('_videoId')) {
             $('.catalogue').eq(1).attr('loadState', 0);
         }
 
@@ -429,24 +426,14 @@ $(document).ready(function () {
     var firstLoadShowProgressbarTip = true;
 
     function calculate() {
-        /* 修改数值 */
-        $('#j-assess-criteria_btn').html('hi~ 亲爱的，刷课插件开始运行了~');
-        if(studyTotalTime != videoSize){
-            isSeeked = false;
-        }
-        studyTotalTime = videoSize;
-        /* 自动定位进度条 */
-        if(!(typeof ablePlayerX("mediaplayer").getDuration() === typeof undefined)){
-            if(!isSeeked && ((ablePlayerX("mediaplayer").getPosition() < ablePlayerX("mediaplayer").getDuration() * 3 / 4))){
-                ablePlayerX("mediaplayer").seek(studyTotalTime);
-                saveCacheIntervalTime();
-                saveDatabaseIntervalTime();
-                isSeeked = true;
-            }
-        }
-        /* 修改数值结束 */
         var size = ((studyTotalTime / videoSize) * 100);
-        return size > 100 ? 100 : size;
+		//进行自动点击
+		if(size > 100){
+			$('.next_lesson_bg').click();
+			return 100;
+		}
+		return size;
+        //return size > 100 ? 100 : size;
     }
 
     /**
@@ -791,10 +778,10 @@ $(document).ready(function () {
         // 针对本学期运行的复旦军理课限制弹幕使用
         var commentToggle = (courseId == 2000624 ? false : true) ;
         //JIANGJH 2015/9/14
-        if($('#schoolId').val() == -1){
-            commentToggle = false;
-        }
-        //END JIANGJH
+		if($('#schoolId').val() == -1){
+			commentToggle = false;
+		}
+		//END JIANGJH
         // 加载播放器代码
         $("#mediaplayer").Ableplayer({
             host: "http://base1.zhihuishu.com/able-commons/",
@@ -811,14 +798,15 @@ $(document).ready(function () {
             enablecommentsend: commentToggle,
             enablecommentshow: commentToggle,
             image: '',
-            defaltplayertype: $('#changePlayerType').attr('type')  // 配置初始使用的播放器类型. 默认值:"1"   乐视播放器:"2"  jwplayer播放器:"3"  , 如果乐视没有转码完成或者上传失败,就自动使用jwplayer播放
+//            defaltplayertype: $('#changePlayerType').attr('type')  // 配置初始使用的播放器类型. 默认值:"1"   乐视播放器:"2"  jwplayer播放器:"3"  , 如果乐视没有转码完成或者上传失败,就自动使用jwplayer播放
+            enableChangePlayerButton: true //是否显示 切换播放器 按扭 默认false
         }, {
             onComplete: function () {// 播放完成
                 totalStudyTime(), clearTimer(), saveCacheIntervalTime(), saveDatabaseIntervalTime();
             }, onPause: function () {
                 clearTimer(), saveCacheIntervalTime();// 自动保存一次缓存
             }, onPlay: function () {
-                $("#codehint_box").hide();
+            	$("#codehint_box").hide();
                 totalStudyTimeAndTimingDataBaseEvent(), suspendTime(), getVideoSize();
                 //console.log("onPlay");
             }, onBuffer: function () {
@@ -889,7 +877,7 @@ $(document).ready(function () {
      */
     function totalStudyTimeAndTimingDataBaseEvent() {
         if (isSignUp()) {
-            // 获取上次学习时间，进度条自动进到指定时间位置
+        	// 获取上次学习时间，进度条自动进到指定时间位置
             if (isNotEmpty(learnTime)) {
                 var date = new Date("January 1,1970 " + learnTime);
                 ablePlayerX("mediaplayer").seek((date.getTime() + (1000 * 3600 * 8)) / 1000);	// 播放器自动加载指定进度函数
@@ -907,7 +895,7 @@ $(document).ready(function () {
      * 开始定时器
      */
     function startTotalTimer() {
-        // 每4990ms执行一次totalStudyTime
+    	// 每4990ms执行一次totalStudyTime
         totalStudyTimeInterval = setInterval(totalStudyTime, 4990);
         // 定时将学习进度写入缓存(暂定30秒)
         cacheInterval = setInterval(saveCacheIntervalTime, cacheIntervalTime);
@@ -1749,8 +1737,8 @@ $(document).ready(function () {
             if (isNotEmpty(lessonVideoId))  params['lessonVideoId'] = lessonVideoId;
             saveCacheIntervalTimeState = false;
             $.ajax({
-                async: true, type: 'post', url: basePath + '/json/learning/saveCacheIntervalTime?time=' + getNowTime(), data: params, success: function () {
-                    saveCacheIntervalTimeState = true;
+                async: true, type: 'post', url: basePath + '/json/learning/saveCacheIntervalTime?time=' + getNowTime(), data: params, success: function (data) {
+               		saveCacheIntervalTimeState = true;
                 },
                 error: function (e) {
                     if (console) {
@@ -1783,9 +1771,12 @@ $(document).ready(function () {
             saveDatabaseState = false;
             $.ajax({
                 async: true, type: 'post', url: url, data: params,
-                success: function () {
-                    loadClickVideoInfo(type, video, getWatchState(calculate()));
-                    saveDatabaseState = true;
+                success: function (data) {
+               		loadClickVideoInfo(type, video, getWatchState(calculate()));
+               		saveDatabaseState = true;
+                	if(data && data.httpCode && data.httpCode == 1001) {
+                		$.tmDialog.tipSuccess({icon:"warn",zindex:1000,msg:"视频学习进度保存失败，请刷新页面重试!",time:1});
+                	}
                 },
                 error: function (e) {
                     saveDatabaseState = true;
@@ -2123,50 +2114,6 @@ $(document).ready(function () {
 });
 
 var vId = 0;//二维码视频id  变值
-
-function openExam(examId, studentExamId, type, state) {
-    var url = "";
-
-    if (type == 1) {
-        if (state == 4) {
-            url = workExamUrl+"/stuexam/firstresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        } else {
-            url = workExamUrl+"/stuexam/paperfirst?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        }
-
-    } else if (type == 2) {
-        if (state == 4) {
-            url = workExamUrl+"/stuexam/secresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        } else {
-            url =workExamUrl+"/stuexam/papersec?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        }
-
-    } else if (type == 3) {
-        if (state == 4) {
-            url = workExamUrl+"/stuexam/fiveresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        } else {
-            url = workExamUrl+"/stuexam/paperthird?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        }
-
-    } else if (type == 4) {
-        if (state == 4) {
-            url = workExamUrl+"/stuexam/thridresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        } else {
-            url = workExamUrl+"/stuexam/paperfour?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        }
-
-    } else if (type == 5) {
-        if (state == 4) {
-            url = workExamUrl+"/stuexam/fourresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-        } else {
-            url = workExamUrl+"/stuexam/paperfive?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
-
-        }
-    }
-    openExamWin(url);
-}
-
-
 function loadCourseExam(examId, studentExamId, limitTime, state, startFlag) {
 
     if (startFlag < 1) {
@@ -2178,7 +2125,35 @@ function loadCourseExam(examId, studentExamId, limitTime, state, startFlag) {
         if (state == 1) {
             reWorkExam(examId, studentExamId, limitTime);
         } else if (state == 4) {
-            openExamWin(workExamUrl+"/stuexam/thridresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1");
+
+       	 $.ajax({
+       	        type: "post",
+       	        url: jsonPath + '/exam/isCheckAnswer?time=' + getNowTime(),
+       	        data: {"studentExamId":studentExamId},      
+       	        error: function () {},
+       	        success: function (data) {
+       	        	if(data.checkAnswerStatus==0){
+       	        		 $.tmDialog.confirm({
+       	                     content: "你确定要查看答案吗,查看答案后不可以再申请重做!", 
+       	                     showBtn: true, icon: "question", sureButton: "确定",
+       	                     cancleButton: "取消", fadeout: true, callback: function (ok) {
+       	                         if (ok) {
+       	                             $.ajax({
+       	                                 type: "post", data: {"studentExamId":studentExamId},
+       	                                 url: basePath + "/json/exam/updateCheckAnswer?v=" + getNowTime(),
+       	                                 success: function (data) {
+       	                                	openExamWin(workExamUrl+"/stuexam/thridresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1");
+       	                                 }
+       	                             });
+       	                         }
+       	                     }
+       	                 });
+       	        	}else{
+       	        		openExamWin(workExamUrl+"/stuexam/thridresult?commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1");
+       	        	}   	           
+       	        }
+       	    });
+           
         } else if (state == 5) {
             reWorkExam(examId, studentExamId, limitTime);
         } else {
@@ -2198,6 +2173,50 @@ function loadCourseExam(examId, studentExamId, limitTime, state, startFlag) {
     }
 
 }
+function openExam(examId, studentExamId, type, state) {
+	var url = "";
+    if(state==4){
+    	 $.ajax({
+    	        type: "post",
+    	        url: jsonPath + '/exam/isCheckAnswer?time=' + getNowTime(),
+    	        data: {"studentExamId":studentExamId},      
+    	        error: function () {},
+    	        success: function (data) {
+    	        
+    	        	if(data.checkAnswerStatus==0){
+    	        		 $.tmDialog.confirm({
+    	                     content: "你确定要查看答案吗,查看答案后不可以再申请重做!", 
+    	                     showBtn: true, icon: "question", sureButton: "确定",
+    	                     cancleButton: "取消", fadeout: true, callback: function (ok) {
+    	                         if (ok) {
+    	                        	 
+    	                             $.ajax({
+    	                                 type: "post", data: {"studentExamId":studentExamId},
+    	                                 url: basePath + "/json/exam/updateCheckAnswer?v=" + getNowTime(),
+    	                                 success: function (data) {
+    	                                	 url = workExamUrl+"/stuexam/openExam?type="+ type +"&state="+ state +"&commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";
+    	                                	 openExamWin(url);
+    	                                 }
+    	                             });
+    	                         }
+    	                     }
+    	                 });
+    	        	}else{
+    	        		url = workExamUrl+"/stuexam/openExam?type="+ type +"&state="+ state +"&commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";           	 
+    	        	 	openExamWin(url);
+
+    	        	}   	           
+    	        }
+    	    });
+    	
+    }else{
+    	url = workExamUrl+"/stuexam/openExam?type="+ type +"&state="+ state +"&commonId=" + examId + "&id=" + studentExamId + "&fromWhere=1";           	 
+	 	openExamWin(url);
+    }
+}
+
+
+
 
 function reWorkExam(examId, studentExamId, limitTime) {
     var Qinfo1 = "<font color='#FF0000'><b>同学！注意啦！这是期末考试！<br>你只有一次答题机会，超过答题时间会自动交卷！</br></b></font>";
@@ -2274,7 +2293,7 @@ function reSizePlayer(mW, mh) {
     // 视频打点容器
     $('.videoDotBox').css({width: mW});
     // 播放列表// 资料列表
-    $('.catalogue_ul1').css({height: mh + 40});
+    $('.catalogue_ul1').css({height: mh});
     //新的笔记内容列表高度
     $('.noteContentul').css({height: mh - 110});
     //优秀笔记内容列表高度
@@ -2420,7 +2439,7 @@ function loadBadgeName() {
 
 function getTopNo() {
     $.post("/onlineSchool/json/notice/findRankInClassIdAndUserId?v=" + Math.random(), {
-        "recruitId" : $("#rid").val() ,
+    	"recruitId" : $("#rid").val() ,
         "classId": $('#classId').val(),
         "userId": $('#userId').val()
     }, function (data) {
@@ -2502,292 +2521,298 @@ function deleteExploreTip() {
 }
 
 //二维码
-function videoQrcode(){
-    var userId = $("#userId").val();
-    var courseId = $("#courseId").val();
-    var recruitId = $("#rid").val();
-    var recruitType = $("#recruitType").val();
-    var currentStudyTime;
-    try {
-        var millisecond = ablePlayerX("mediaplayer").getPosition() * 1000 - (1000 * 3600 * 8);
-        var date = new Date();
-        date.setTime(millisecond);
-        currentStudyTime = date.toLocaleTimeString();
+function videoQrcode(){ 
+	var userId = $("#userId").val();
+	var courseId = $("#courseId").val();
+	var recruitId = $("#rid").val();
+	var recruitType = $("#recruitType").val();
+	var currentStudyTime;
+	 try {
+		 var millisecond = ablePlayerX("mediaplayer").getPosition() * 1000 - (1000 * 3600 * 8);
+		 var date = new Date();
+		 date.setTime(millisecond);
+		 currentStudyTime = date.toLocaleTimeString();
+		
+		 if (currentStudyTime == 'Invalid Date') {
+			 currentStudyTime = "00:00:00";
+		 }
+		
+		 // 苹果电脑下noteTime展示错误，下为解决方法//
+		 if (currentStudyTime.length != 8) {
+		     var hour = date.getHours().toString();
+		     var minute = date.getMinutes().toString();
+		     var seconds = date.getSeconds().toString();
+		
+		     if (hour.length == 1) {
+		         hour = "0" + hour;
+		     }
+		
+		     if (minute.length == 1) {
+		         minute = "0" + minute;
+		     }
+		
+		     if (seconds.length == 1) {
+		         seconds = "0" + seconds;
+		     }
 
-        if (currentStudyTime == 'Invalid Date') {
-            currentStudyTime = "00:00:00";
-        }
-
-        // 苹果电脑下noteTime展示错误，下为解决方法//
-        if (currentStudyTime.length != 8) {
-            var hour = date.getHours().toString();
-            var minute = date.getMinutes().toString();
-            var seconds = date.getSeconds().toString();
-
-            if (hour.length == 1) {
-                hour = "0" + hour;
-            }
-
-            if (minute.length == 1) {
-                minute = "0" + minute;
-            }
-
-            if (seconds.length == 1) {
-                seconds = "0" + seconds;
-            }
-
-            currentStudyTime = hour + ":" + minute + ":" + seconds;
-        }
-    } catch (e) {
-    } finally {
-    }
-    var dt = "{u:"+userId+",c:"+courseId+",r:"+recruitId+",v:"+vId+",p:'"+currentStudyTime+"'}";
-    dt = "video="+dt;
-    $('#video_qrcode').children().remove();
-    var w = 140;
-    var h = 140;
-    if(window.navigator.userAgent.indexOf("Chrome")!=-1){
-        $("#video_qrcode").parent().removeClass("browser_w_h");
-        w = 120;
-        h = 120;
-    }
-    if(window.navigator.userAgent.indexOf("Safari")!=-1) {
-        $("#video_qrcode").parent().removeClass("browser_w_h");
-        w = 120;
-        h = 120;
-    }
-    $('#video_qrcode').qrcode({render:"table",text:dt,width:w,height:h});
+		     currentStudyTime = hour + ":" + minute + ":" + seconds;
+		     }
+	 } catch (e) {
+	 } finally {
+	 }
+	var dt = "{u:"+userId+",c:"+courseId+",r:"+recruitId+",v:"+vId+",p:'"+currentStudyTime+"'}";
+	dt = "video="+dt;
+	$('#video_qrcode').children().remove();
+	var w = 140;
+	var h = 140;
+	if(window.navigator.userAgent.indexOf("Chrome")!=-1){
+		$("#video_qrcode").parent().removeClass("browser_w_h");
+		w = 120;
+		h = 120;
+	}
+	if(window.navigator.userAgent.indexOf("Safari")!=-1) {
+		$("#video_qrcode").parent().removeClass("browser_w_h");
+		w = 120;
+		h = 120;   
+	} 
+	$('#video_qrcode').qrcode({render:"table",text:dt,width:w,height:h});
 //	$('#video_qrcode').qrcode({text:dt,width:140,height:140});
-
+	
 }
 
 function hideQrcode(){
 //	ablePlayerX("mediaplayer").pause();//播放视频
-    $("#codehint_box").hide();
+	$("#codehint_box").hide();
 }
 function showQrcode(){
-    ablePlayerX("mediaplayer").pause(true);//停止视频
-    videoQrcode();
-    $("#codehint_box").show();
+	ablePlayerX("mediaplayer").pause(true);//停止视频
+	videoQrcode();
+	$("#codehint_box").show();
 }
 
 // 考核标准弹出 by zhanglikun 2015/7/16
 (function(){
+	
+	var recruitInfo = false ;	// 招生信息
+	
+	$(function(){
+		
+		// 弹出考核标准弹出层
+		$("#j-assess-criteria_btn").click(function(){
+			//$("#j-assess-criteria_popup").show() ;
+			$("#j-assess-criteria_popup").animate({top:30,opacity:'show',width:840,height:505,right:-166},10);
+			// 第一次打开时加载招生信息和考核标准信息
+			if(!recruitInfo) {
+				ajaxGetRecruit() ;
+				ajaxGetAssessInfo() ;
+			}
+		}) ;
+		// 关闭弹出层
+		$(".j-popup-close").click(function(){
+			//$("#j-assess-criteria_popup").hide() ;
+			$("#j-assess-criteria_popup").animate({top:10,opacity: 'hide',width:0,height:0,right:-10},500);
+		}) ;
+	
+		// 针对每个招生建一个cookie，以保证每个招生都会弹，这样好么？先这样吧！
+		var cookie_name = 'assess_criteria_toggle_' + rid ;
+		
+		// 考核标准按钮显示时，才判断是否需要自动弹出
+		if($("#j-assess-criteria_btn").is(":visible")) {
+			// 从Cookie里获取考核阅读标记
+			var act = $.cookie(cookie_name);
+			// 如果标记不存在，或者是off，弹出考核标准，并将状态置为on
+			if(!act || act == 'off') {
+				$("#j-assess-criteria_btn").click() ;	// 触发弹出动作
+				act = 'on' ;
+				$.cookie(cookie_name ,act ,{expires: 30});   
+			}
+		}
+		
+	}) ;
 
-    var recruitInfo = false ;	// 招生信息
-
-    $(function(){
-
-        // 弹出考核标准弹出层
-        $("#j-assess-criteria_btn").click(function(){
-            //$("#j-assess-criteria_popup").show() ;
-            $("#j-assess-criteria_popup").animate({top:30,opacity:'show',width:840,height:505,right:-166},10);
-            // 第一次打开时加载招生信息和考核标准信息
-            if(!recruitInfo) {
-                ajaxGetRecruit() ;
-                ajaxGetAssessInfo() ;
-            }
-        }) ;
-        // 关闭弹出层
-        $(".j-popup-close").click(function(){
-            //$("#j-assess-criteria_popup").hide() ;
-            $("#j-assess-criteria_popup").animate({top:10,opacity: 'hide',width:0,height:0,right:-10},500);
-        }) ;
-
-        // 针对每个招生建一个cookie，以保证每个招生都会弹，这样好么？先这样吧！
-        var cookie_name = 'assess_criteria_toggle_' + rid ;
-
-        // 考核标准按钮显示时，才判断是否需要自动弹出
-        if($("#j-assess-criteria_btn").is(":visible")) {
-            // 从Cookie里获取考核阅读标记
-            var act = $.cookie(cookie_name);
-            // 如果标记不存在，或者是off，弹出考核标准，并将状态置为on
-            if(!act || act == 'off') {
-                $("#j-assess-criteria_btn").click() ;	// 触发弹出动作
-                act = 'on' ;
-                $.cookie(cookie_name ,act ,{expires: 30});
-            }
-        }
-
-    }) ;
-
-    /**
-     * 获取考核信息
-     */
-    function ajaxGetAssessInfo() {
-        // courseId 上面有声明
-        $.get(ctx + "/json/learning/findScoreAssessRule" ,{"courseId" : courseId} ,function(data){
-            var scoreAssessRule = data.scoreAssessRule ;
-            if(scoreAssessRule) {
-                // 填充考核标准数据
-                fillScoreRule(scoreAssessRule ,data.meetTotal,data.jsonExtend) ;
-            }
-        }) ;
-    }
-
-    function dateTimeToDate(dateTimeStr){
-        if(dateTimeStr == null) return "";
-        var vPos = dateTimeStr.indexOf(" ");
-        if(vPos == -1){
-            vPos = dateTimeStr.indexOf("T");
-        }
-        if(vPos == -1) return dateTimeStr;
-        return dateTimeStr.substr(0,vPos);
-    }
-
-    /**
-     * 填充考核标准 XXX
-     */
-    function fillScoreRule(rule ,meetTotal,jsonExtend) {
-        var $popup = $("#j-assess-criteria_popup") ;
-        // 占比
-        $popup.find(".j-rate-online").text(rule.onlineScoreShare||0) ;
-        $popup.find(".j-rate-meet").text(rule.meetCourseScoreShare||0) ;
-        $popup.find(".j-rate-final").text(rule.finalExamScoreShare||0) ;
-        $popup.find(".j-rate-bbs").text(rule.bbsScore||0) ;
-
-        $("#_id_j-rate-online").text(rule.onlineScoreShare||0) ;
-        $("#_id_j-rate-meet").text(rule.meetCourseScoreShare||0) ;
-        $("#_id_j-rate-final").text(rule.finalExamScoreShare||0) ;
-        $("#_id_j-rate-bbs").text(rule.bbsScore||0) ;
-
-        // 成绩
-        $popup.find(".j-score-online").text(rule.courseScoreShare||0) ;
-        $popup.find(".j-score-pbl").text(rule.PBLScoreShare||0) ;
-        $popup.find(".j-count-meet").text(meetTotal||0) ;
-        // BBS成绩
-        $popup.find(".j-bbs-fatie").text(rule.postScore||0) ;
-        $popup.find(".j-bbs-huitie").text(rule.returnPostScore||0) ;
-        $popup.find(".j-bbs-count-fatie").text(rule.postCount||0) ;
-        $popup.find(".j-bbs-count-huitie").text(rule.returnPostCount||0) ;
-        $popup.find(".j-bbs-count-teacher").text(rule.teacherGardScore||0) ;
-        $popup.find(".postNum").text(rule.postNum||0) ;
-        $popup.find(".returnPostNum").text(rule.returnPostNum||0) ;
-        // 不是加分项
-        if(rule.isAddScore == 0) {
-            //$popup.find(".j-jiafenxiang-tips").hide() ;
-        }
-
-        //JIANGJH 2015/9/15
-        if(rule.PBLScoreShare == "" || rule.PBLScoreShare == 0){
-            $('#_id_pbl_scout').hide();
-            $('#_id_index_1').text("1");
-            $('#_id_index_2').text("2");
-            $('#_id_index_3').text("3");
-        }
-
-        var chapterExams = jsonExtend.chapter;
-        var vLateStr = "";
-        var vLateStr2 = "";
-        //显示允许迟交、百分等信息
-        var vAllowCount = 0;
-        var vNotAllowCount = 0;
-        for(var vi = 0; vi < chapterExams.length; vi++){
-            var vChapter = chapterExams[vi];
-            if(vChapter.exam_late_setting == "1" || vChapter.exam_late_setting == "2"){
-                if(vLateStr != "") vLateStr += "、";
-                vLateStr += vChapter.chapnumber;
-                if(vLateStr2 == "" && vChapter.exam_late_score > 0){
-                    vLateStr2 = "扣"+vChapter.exam_late_score+"分";
-                }
-                vAllowCount++;
-            }else{
-                vNotAllowCount++;
-            }
-        }
-        if(vNotAllowCount == chapterExams.length){
-            vLateStr = "所有章节不允许迟交";
-        }else{
-            if(vAllowCount == chapterExams.length){
-                if(vLateStr2 != "") vLateStr2 = ","+vLateStr2;
-                vLateStr = "所有章节允许迟交"+ vLateStr2+"。";
-            }else{
-                //if(vLateStr != "")
-                {
-                    if(vLateStr2 != "") vLateStr2 = ","+vLateStr2;
-                    vLateStr = "第"+vLateStr +"章允许迟交"+ vLateStr2 + ", 其它章节不允许迟交。";
-                }
-            }
-        }
-        $('#_id_late_submit').text(vLateStr);
-
-        //期末考试模式
-        if(rule.finalExamType == -1){
-            $('#_id_qimo_exam_type').text("线下考");
-        }else{
-            $('#_id_qimo_exam_type').text("线上考");
-        }
-
-        //期末时间
-        var qimoExamTime = "";
-        if(typeof(jsonExtend.exam) != "undefined" && jsonExtend.exam != null && jsonExtend.exam.exam_starttime != "" && jsonExtend.exam.exam_endtime != ""){
-            qimoExamTime = dateTimeToDate(jsonExtend.exam.exam_starttime)+"-"+dateTimeToDate(jsonExtend.exam.exam_endtime);
-        }else{
-            qimoExamTime = "另行通知"
-        }
-        $('#j-course-exam-time').text(qimoExamTime);
-        $('#_id_qimo_exam_time').text(qimoExamTime);
-
-        //设置见面课信息
-        var vMCStr = "";
-        var mcList = jsonExtend.mclist;
-        if(jsonExtend.mclistTotal < 1) jsonExtend.mclistTotal = 1;
-        for(var i=0; i<mcList.length; i++){
-            var vMCOne = "第"+(i+1)+"次: 考勤"+(mcList[i].checkScore*rule.meetCourseScoreShare)/jsonExtend.mclistTotal+"分,现场"+(mcList[i].siteScore*rule.meetCourseScoreShare)/jsonExtend.mclistTotal+"分";
-            if(vMCStr != "") vMCStr += ",";
-            vMCStr += vMCOne;
-        }
-        $('#_id_mclist_scout_detail').text(vMCStr);
-
-        //考试内容
-        if(jsonExtend.examContent == "") jsonExtend.examContent = "未定";
-        $('#_id_qimo_exam_content').text(jsonExtend.examContent);
-
-        //论坛设置
-        $('#_id_luntan_scout').text(rule.bbsScore||0);
-        //计算论坛是否作为附加分
-        if(rule.onlineScoreShare + rule.meetCourseScoreShare + rule.finalExamScoreShare > 100){  //论坛作为附加分了
-            $('#_id_bbs_extend1').hide();
-            $('#_id_bbs_extend2').show();
-            $('#_id_bbs_header_append').show();
-            $('.additional_ico').show();
-            $('#_idspan_bbs_extend_color').attr("style","color: #FF9D00;");
-        }
-
-    }
-
-    /**
-     * 异步获取招生信息
-     */
-    function ajaxGetRecruit () {
-        // rid 上面有声明
-        $.get(ctx + "/json/course/findRecruit" ,{"rid" : rid} ,function(data){
-            /*if(data.recruitDto) {
-             recruitInfo = data.recruitDto ;
-             // 填充课程结束时间
-             if(recruitInfo.courseEndTime && recruitInfo.courseStartTime) {
-             $(".j-course-endtime").text(dateTimeToDate(recruitInfo.courseStartTime)+"-"+dateTimeToDate(recruitInfo.courseEndTime)) ;
-             }else{
-             $(".j-course-endtime").text("");
-             }
-             }*/
-            // 填充课程结束时间
-            if(data.jsonExtend.recruit_starttime != ""){
-                $(".j-course-endtime").text(dateTimeToDate(data.jsonExtend.recruit_starttime)+"-"+dateTimeToDate(data.jsonExtend.recruit_endtime)) ;
-            }
-            //补考设置
-            if(data.jsonExtend.recruit_makeup == 0){  //补考需要老师同意
-                $('#_id_exam_allow_makeup').text("补考需要老师同意");
-            }
-            if(data.jsonExtend.recruit_makeup == 1){  //不允许补考
-                $('#_id_exam_allow_makeup').text("不允许补考");
-            }
-            if(data.jsonExtend.recruit_makeup == 2){  //允许补考
-                $('#_id_exam_allow_makeup').text("允许补考，只给不及格的同学一次补考机会，且以补考成绩为最后的成绩");
-            }
-        }) ;
-    }
-
-
-
+	/**
+	 * 获取考核信息
+	 */
+	function ajaxGetAssessInfo() {
+		// courseId 上面有声明
+		$.get(ctx + "/json/learning/findScoreAssessRule" ,{"courseId" : courseId} ,function(data){
+			var scoreAssessRule = data.scoreAssessRule ;
+			if(scoreAssessRule) {
+				// 填充考核标准数据
+				fillScoreRule(scoreAssessRule ,data.meetTotal,data.jsonExtend) ;
+			}
+		}) ;
+	}
+	
+	function dateTimeToDate(dateTimeStr){
+		if(dateTimeStr == null) return "";
+		var vPos = dateTimeStr.indexOf(" ");
+		if(vPos == -1){
+			vPos = dateTimeStr.indexOf("T");
+		}
+		if(vPos == -1) return dateTimeStr;
+		return dateTimeStr.substr(0,vPos);
+	}
+	
+	/**
+	 * 填充考核标准 XXX
+	 */
+	function fillScoreRule(rule ,meetTotal,jsonExtend) {
+		var $popup = $("#j-assess-criteria_popup") ;
+		if(rule.meetCourseScoreShare == "") rule.meetCourseScoreShare = "0";
+		// 占比
+		$popup.find(".j-rate-online").text(rule.onlineScoreShare||0) ;
+		$popup.find(".j-rate-meet").text(rule.meetCourseScoreShare||0) ;
+		$popup.find(".j-rate-final").text(rule.finalExamScoreShare||0) ;
+		$popup.find(".j-rate-bbs").text(rule.bbsScore||0) ;
+		
+		$("#_id_j-rate-online").text(rule.onlineScoreShare||0) ;
+		$("#_id_j-rate-meet").text(rule.meetCourseScoreShare||0) ;
+		$("#_id_j-rate-final").text(rule.finalExamScoreShare||0) ;
+		$("#_id_j-rate-bbs").text(rule.bbsScore||0) ;
+		
+		// 成绩
+		$popup.find(".j-score-online").text(rule.courseScoreShare||0) ;
+		$popup.find(".j-score-pbl").text(rule.PBLScoreShare||0) ;
+		$popup.find(".j-count-meet").text(meetTotal||0) ;
+		// BBS成绩
+		$popup.find(".j-bbs-fatie").text(rule.postScore||0) ;
+		$popup.find(".j-bbs-huitie").text(rule.returnPostScore||0) ;
+		$popup.find(".j-bbs-count-fatie").text(rule.postCount||0) ;
+		$popup.find(".j-bbs-count-huitie").text(rule.returnPostCount||0) ;
+		$popup.find(".j-bbs-count-teacher").text(rule.teacherGardScore||0) ;
+		$popup.find(".postNum").text(rule.postNum||0) ;
+		$popup.find(".returnPostNum").text(rule.returnPostNum||0) ;
+		// 不是加分项
+		if(rule.isAddScore == 0) {
+			//$popup.find(".j-jiafenxiang-tips").hide() ;
+		}
+		
+		//JIANGJH 2015/9/15
+		if(rule.PBLScoreShare == "" || rule.PBLScoreShare == 0){
+			$('#_id_pbl_scout').hide();
+			$('#_id_index_1').text("1");
+			$('#_id_index_2').text("2");
+			$('#_id_index_3').text("3");
+		}
+		
+		var chapterExams = jsonExtend.chapter;
+		var vLateStr = "";
+		var vLateStr2 = "";
+		//显示允许迟交、百分等信息
+		var vAllowCount = 0;
+		var vNotAllowCount = 0;
+		for(var vi = 0; vi < chapterExams.length; vi++){
+			var vChapter = chapterExams[vi];
+			if(vChapter.exam_late_setting == "1" || vChapter.exam_late_setting == "2"){
+				if(vLateStr != "") vLateStr += "、";
+				vLateStr += vChapter.chapnumber;				
+				if(vLateStr2 == "" && vChapter.exam_late_score > 0){					
+					vLateStr2 = "扣"+vChapter.exam_late_score+"分";
+				}
+				vAllowCount++;
+			}else{
+				vNotAllowCount++;
+			}			
+		}
+		if(vNotAllowCount == chapterExams.length){
+			vLateStr = "所有章节不允许迟交";
+		}else{
+			if(vAllowCount == chapterExams.length){
+				if(vLateStr2 != "") vLateStr2 = ","+vLateStr2;
+				vLateStr = "所有章节允许迟交"+ vLateStr2+"。";
+			}else{
+				//if(vLateStr != "")
+				{
+					if(vLateStr2 != "") vLateStr2 = ","+vLateStr2;
+					vLateStr = "第"+vLateStr +"章允许迟交"+ vLateStr2 + ", 其它章节不允许迟交。";
+				}
+			}					
+		}
+		$('#_id_late_submit').text(vLateStr);
+		
+		//期末考试模式
+		if(rule.finalExamType == -1){
+			$('#_id_qimo_exam_type').text("线下考");
+		}else{
+			$('#_id_qimo_exam_type').text("线上考");
+		}		
+		
+		//期末时间
+		var qimoExamTime = "";
+		if(typeof(jsonExtend.exam) != "undefined" && jsonExtend.exam != null && jsonExtend.exam.exam_starttime != "" && jsonExtend.exam.exam_endtime != ""){
+			qimoExamTime = dateTimeToDate(jsonExtend.exam.exam_starttime)+"-"+dateTimeToDate(jsonExtend.exam.exam_endtime);	
+		}else{
+			qimoExamTime = "另行通知"			
+		}
+		$('#j-course-exam-time').text(qimoExamTime);
+		$('#_id_qimo_exam_time').text(qimoExamTime);
+		
+		//设置见面课信息
+		var vMCStr = "";
+		var mcList = jsonExtend.mclist;
+		if(jsonExtend.mclistTotal < 1) jsonExtend.mclistTotal = 1;
+		for(var i=0; i<mcList.length; i++){//考情分*见面课成绩占比/见面课程总分
+			//var vMCOne = "第"+(i+1)+"次: 考勤"+(mcList[i].checkScore*rule.meetCourseScoreShare)/jsonExtend.mclistTotal+"分,现场"+(mcList[i].siteScore*rule.meetCourseScoreShare)/jsonExtend.mclistTotal+"分";
+			var vMCOne = "第"+(i+1)+"次: 考勤"+mcList[i].checkScore+"分,现场"+mcList[i].siteScore+"分";
+			if(vMCStr != "") vMCStr += ",";
+			vMCStr += vMCOne;
+		}
+		$('#_id_mclist_scout_detail').text(vMCStr);
+		
+		//考试内容
+		if(jsonExtend.examContent == "") jsonExtend.examContent = "未定";
+		$('#_id_qimo_exam_content').text(jsonExtend.examContent);
+		
+		//论坛设置
+		$('#_id_luntan_scout').text(rule.bbsScore||0);
+		if(rule.bbsScore == "" || parseInt(rule.bbsScore) == 0){
+			$('#TabTitlediv_4').hide();
+			$('#_idspan_bbs_extend_color').hide();
+		}
+		//计算论坛是否作为附加分
+		if(parseInt(rule.onlineScoreShare) + parseInt(rule.meetCourseScoreShare) + parseInt(rule.finalExamScoreShare) == 100 && parseInt(rule.bbsScore) > 0){  //论坛作为附加分了
+			$('#_id_bbs_extend1').hide();
+			$('#_id_bbs_extend2').show();
+			$('#_id_bbs_header_append').show();
+			$('.additional_ico').show();
+			$('#_idspan_bbs_extend_color').attr("style","color: #FF9D00;");
+		}
+				
+	}
+	
+	/**
+	 * 异步获取招生信息
+	 */
+	function ajaxGetRecruit () {
+		// rid 上面有声明
+		$.get(ctx + "/json/course/findRecruit" ,{"rid" : rid} ,function(data){
+			/*if(data.recruitDto) {
+				recruitInfo = data.recruitDto ;
+				// 填充课程结束时间				
+				if(recruitInfo.courseEndTime && recruitInfo.courseStartTime) {
+					$(".j-course-endtime").text(dateTimeToDate(recruitInfo.courseStartTime)+"-"+dateTimeToDate(recruitInfo.courseEndTime)) ;
+				}else{
+					$(".j-course-endtime").text("");
+				}
+			}*/
+			// 填充课程结束时间		
+			if(data.jsonExtend.recruit_starttime != ""){
+				$(".j-course-endtime").text(dateTimeToDate(data.jsonExtend.recruit_starttime)+"-"+dateTimeToDate(data.jsonExtend.recruit_endtime)) ;	
+			}
+					//补考设置
+			if(data.jsonExtend.recruit_makeup == 0){  //补考需要老师同意
+				$('#_id_exam_allow_makeup').text("补考需要老师同意");				
+			}
+			if(data.jsonExtend.recruit_makeup == 1){  //不允许补考
+				$('#_id_exam_allow_makeup').text("不允许补考");
+			}
+			if(data.jsonExtend.recruit_makeup == 2){  //允许补考
+				$('#_id_exam_allow_makeup').text("允许补考，只给不及格的同学一次补考机会，且以补考成绩为最后的成绩");
+			}
+		}) ;
+	}
+	
+	
+	
 })() ;

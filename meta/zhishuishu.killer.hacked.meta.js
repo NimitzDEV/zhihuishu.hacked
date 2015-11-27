@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        智慧树刷课插件
+// @name        智慧树刷课插件(安全版)
 // @namespace   http://www.nimitzdev.org/
-// @version     1.0.0
+// @version     1.1.0
 // @author      NimitzDEV
 // @description 此插件用于进行智慧树刷课用
 // @copyright   2015, NimitzDEV
